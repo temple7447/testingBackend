@@ -32,7 +32,7 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Upload endpoint
+// Upload image endpoint
 app.post('/upload', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
@@ -51,6 +51,48 @@ app.post('/upload', upload.single('image'), async (req, res) => {
       }
     );
     result.end(req.file.buffer);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Upload video endpoint
+app.post('/upload-video', upload.single('video'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+    cloudinary.uploader.upload_stream(
+      { resource_type: 'video' },
+      async (error, result) => {
+        if (error) return res.status(500).json({ error: 'Cloudinary upload failed' });
+
+        const video = new Image({ url: result.secure_url });
+        await video.save();
+
+        res.json({ url: result.secure_url });
+      }
+    ).end(req.file.buffer);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Upload generic file endpoint
+app.post('/upload-file', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+    cloudinary.uploader.upload_stream(
+      { resource_type: 'raw' },
+      async (error, result) => {
+        if (error) return res.status(500).json({ error: 'Cloudinary upload failed' });
+
+        const file = new Image({ url: result.secure_url });
+        await file.save();
+
+        res.json({ url: result.secure_url });
+      }
+    ).end(req.file.buffer);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }

@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
+const cors = require('cors'); // add this line
 
 // Cloudinary config
 cloudinary.config({
@@ -24,6 +25,7 @@ const upload = multer({ storage });
 
 // Express app setup
 const app = express();
+app.use(cors()); // allow all origins
 app.use(morgan('dev'));
 app.use(express.json());
 
